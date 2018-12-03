@@ -1,0 +1,22 @@
+- name: install needed packages to build and run stubby
+  apt:
+    name: ['git', 'build-essential', 'libssl-dev', 'libtool', 'm4', 'autoconf', 'automake', 'libyaml-dev', 'libev4', 'libevent-core-2.1-6', 'libuv1', 'curl']
+    state: present
+
+- name: copy stubby config
+  template:
+    src: stubby.yml.j2
+    dest: /etc/stubby.yml
+
+- name: run stubby install script
+  script: install-stubby.sh /usr/local {{ conn_secure_dns}},{{ conn_secure_dns_ipv6 }} {{ conn_secure_dns_port }}
+  args:
+    creates: /usr/local/bin/stubby
+    executable: /bin/sh
+
+- name: copy secury stubby service unit file for systemd
+  copy:
+    src: stubby.service
+    dest: /lib/systemd/system/stubby.service
+  notify:
+    - restart stubby

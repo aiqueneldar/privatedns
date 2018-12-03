@@ -1,0 +1,43 @@
+# Details for standard ethernet connection
+conn_name: "Wired connection 1"
+conn_int: "eth0"
+conn_static_ip: "192.168.1.10"
+conn_static_ipv6: ""
+conn_static_gw: "192.168.1.1"
+conn_setup_dns: "1.1.1.1"
+conn_secure_dns: "127.0.0.1"
+conn_secure_dns_ipv6: "1::0"
+conn_secure_dns_port: "5353"
+conn_local_network: "192.168.1.0"
+conn_local_mask: "/24"
+conn_local_maskv6: ""
+
+# Details for VPN connection
+vpn_name: "client"
+vpn_int: "tun0"
+vpn_int_uuid: ""
+vpn_user: ""
+vpn_password: ""
+vpn_endpoints:
+  - "server1:port"
+  - "server2:port"
+  - "server3:port"
+#  - "serverN:port"
+
+# Upstream DNS to use with DoT
+dns_upstream_servers: 
+  - "address_data: 1.1.1.1" 
+  - "tls_auth_name: cloudflare-dns.com"
+  - "address_data: 1.0.0.1"
+  - "tls_auth_name: cloudflare-dns.com"
+dns_upstream_ips:
+  - "1.1.1.1"
+  - "1.0.0.1"
+
+# Pihole config
+pihole_admin_pass_hash: ""
+pihole_dhcp_start_ip: "192.168.1.100"
+pihole_dhcp_end_ip: "192.168.1.251"
+pihole_domain: ""
+pihole_dhcp_ipv6: false
+pihole_query_logging: true

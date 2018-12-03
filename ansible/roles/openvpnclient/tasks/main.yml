@@ -1,0 +1,39 @@
+- name: create config directory
+  file:
+    name: "/etc/openvpn/client"
+    state: directory
+
+- name: copy vpn configureation file
+  copy:
+    src: client.ovpn
+    dest: "/etc/openvpn/client.ovpn"
+
+- name: copy vpn ca.crt
+  copy:
+    src: ca.crt
+    dest: "/etc/openvpn/ca.crt"
+
+- name: copy tls key
+  copy:
+    src: tls.key
+    dest: "/etc/openvpn/tls.key"
+
+- name: install openvpn plugin to NetworkManager
+  apt:
+    name: network-manager-openvpn
+    state: latest
+
+- name: import vpn connection with nmcli
+  command: nmcli con import type openvpn file /etc/openvpn/client.ovpn
+  args:
+    creates: "/etc/NetworkManager/system-connections/client"
+
+- name: configre vpn connection
+  template:
+    src: client.j2
+    dest: "/etc/NetworkManager/system-connections/client"
+  register: client_config
+
+- name: reload connection
+  command: nmcli con reload client
+  when: client_config is changed

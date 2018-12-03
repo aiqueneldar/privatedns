@@ -1,0 +1,20 @@
+- name: update system packages
+  apt:
+    upgrade: yes
+
+- name: install needed network libs
+  apt: 
+    name: ['libnm-glib-dev', 'python-networkmanager']
+    state: present
+
+- name: Set static network
+  nmcli:
+    conn_name: "{{ conn_name }}"
+    dns4: 
+      - "{{ conn_setup_dns }}"
+    gw4: "{{ conn_static_gw }}"
+    ifname: "{{ conn_int }}"
+    ip4: "{{ conn_static_ip }}{{ conn_local_mask }}"
+    state: present
+    type: ethernet
+    autoconnect: yes

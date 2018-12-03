@@ -1,0 +1,17 @@
+- name: set own pihole as resolveing dns and router as def gw
+  nmcli:
+    conn_name: "{{ conn_name }}"
+    dns4:
+      - "{{ conn_secure_dns }}"
+    gw4: "{{ conn_static_gw }}"
+    type: ethernet
+    state: present
+
+- name: check if vpn-connection is up or down
+  shell: nmcli con show client | grep GENERAL.STATE
+  ignore_errors: true
+  register: vpn_status
+
+- name: start vpn connection with nmcli
+  command: nmcli con up client
+  when: vpn_status is not defined or vpn_status.stdout is not defined or 'activated' not in vpn_status.stdout

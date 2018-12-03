@@ -1,0 +1,244 @@
+# Allow IP fowarding in kernel
+- name: allow tcp forwarding in kernel
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: 1
+    sysctl_set: yes
+    state: present
+    reload: yes
+
+# All rules for localhost
+- name: allow all incomming traffic on localhost interface
+  iptables:
+    action: append
+    chain: "INPUT"
+    comment: "Handled by Ansible"
+    in_interface: 'lo'
+    jump: "ACCEPT"
+
+- name: allow all outgoing traffic on localhost interface
+  iptables:
+    action: append
+    chain: "OUTPUT"
+    comment: "Handled by Ansible"
+    out_interface: 'lo'
+    jump: "ACCEPT"
+
+# All rules for Incoming traffic
+- name: allow incoming ping (icmp 0)
+  iptables:
+    action: append
+    chain: "INPUT"
+    comment: "Handled by Ansible"
+    protocol: "icmp"
+    match: "icmp"
+    icmp_type: 0
+    jump: "ACCEPT"
+    
+- name: allow incoming ping (icmp 8)
+  iptables:
+    action: append
+    chain: "INPUT"
+    comment: "Handled by Ansible"
+    protocol: "icmp"
+    match: "icmp"
+    icmp_type: 8
+    jump: "ACCEPT"
+
+- name: allow all traffic from local LAN in
+  iptables:
+    action: append
+    chain: "INPUT"
+    comment: "Handled by Ansible"
+    source: "{{ conn_local_network }}{{ conn_local_mask }}"
+    jump: "ACCEPT"
+
+- name: allow associated return traffic from WAN
+  iptables:
+    action: append
+    chain: "INPUT"
+    comment: "Handled by Ansible"
+    ctstate:
+      - "RELATED"
+      - "ESTABLISHED"
+    in_interface: "{{ conn_int }}"
+    jump: "ACCEPT"
+
+- name: allow associated traffic back in from tunnel
+  iptables:
+    action: append
+    chain: "INPUT"
+    comment: "Handled by Ansible"
+    in_interface: "{{ vpn_int }}"
+    ctstate:
+      - "RELATED"
+      - "ESTABLISHED"
+    jump: "ACCEPT"
+
+- name: allow returning VPN traffic
+  iptables:
+    action: append
+    chain: "INPUT"
+    comment: "Handled by Ansible"
+    in_interface: "{{ conn_int }}"
+    protocol: "udp"
+    match: "udp"
+    source_port: 1196
+    jump: "ACCEPT"
+
+- name: Allow incoming DHCP traffic (67)
+  iptables:
+    action: append
+    chain: "INPUT"
+    comment: "Handled by Ansible"
+    in_interface: "{{ conn_int }}"
+    protocol: "udp"
+    match: "udp"
+    destination_port: 67
+    jump: "ACCEPT"
+
+- name: Allow incoming DHCP traffic (68)
+  iptables:
+    action: append
+    chain: "INPUT"
+    comment: "Handled by Ansible"
+    in_interface: "{{ conn_int }}"
+    protocol: "udp"
+    match: "udp"
+    destination_port: 68
+    jump: "ACCEPT"
+
+# All rules for Forwarding traffic
+- name: Forward traffic LAN -> VPN
+  iptables:
+    action: append
+    chain: "FORWARD"
+    comment: "Handled by Ansible"
+    in_interface: "{{ conn_int }}"
+    out_interface: "{{ vpn_int }}"
+    jump: "ACCEPT"
+
+- name: Forward traffic VPN -> LAN
+  iptables:
+    action: append
+    chain: "FORWARD"
+    comment: "Handled by Ansible"
+    ctstate:
+      - "RELATED"
+      - "ESTABLISHED"
+    in_interface: "{{ vpn_int }}"
+    out_interface: "{{ conn_int }}"
+    jump: "ACCEPT"
+
+# All rules for Outgoing traffic
+- name: allow outgoing ping (icmp 0)
+  iptables:
+    action: append
+    chain: "OUTPUT"
+    comment: "Handled by Ansible"
+    protocol: "icmp"
+    match: "icmp"
+    icmp_type: 0
+    jump: "ACCEPT"
+    
+- name: allow outgoing ping (icmp 8)
+  iptables:
+    action: append
+    chain: "OUTPUT"
+    comment: "Handled by Ansible"
+    protocol: "icmp"
+    match: "icmp"
+    icmp_type: 8
+    jump: "ACCEPT"
+
+- name: allow all traffic to local LAN out
+  iptables:
+    action: append
+    chain: "OUTPUT"
+    comment: "Handled by Ansible"
+    destination: "{{ conn_local_network }}{{ conn_local_mask }}"
+    jump: "ACCEPT"
+
+- name: allow traffic out to connect to external DNS
+  iptables:
+    action: append
+    chain: "OUTPUT"
+    comment: "Handled by Ansible"
+    destination: "{{ item }}"
+    out_interface: "{{ conn_int }}"
+    jump: "ACCEPT"
+  with_items: "{{ dns_upstream_ips }}"
+
+- name: allow traffic out to tunnel
+  iptables:
+    action: append
+    chain: "OUTPUT"
+    comment: "Handled by Ansible"
+    out_interface: "{{ vpn_int }}"
+    jump: "ACCEPT"
+
+- name: allow VPN to make connections
+  iptables:
+    action: append
+    chain: "OUTPUT"
+    comment: "Handled by Ansible"
+    out_interface: "{{ conn_int }}"
+    protocol: "udp"
+    match: "udp"
+    destination_port: 1196
+    jump: "ACCEPT"
+
+- name: Allow incoming DHCP traffic (67)
+  iptables:
+    action: append
+    chain: "OUTPUT"
+    comment: "Handled by Ansible"
+    out_interface: "{{ conn_int }}"
+    protocol: "udp"
+    match: "udp"
+    source_port: 67
+    jump: "ACCEPT"
+
+- name: Allow incoming DHCP traffic (68)
+  iptables:
+    action: append
+    chain: "OUTPUT"
+    comment: "Handled by Ansible"
+    out_interface: "{{ conn_int }}"
+    protocol: "udp"
+    match: "udp"
+    source_port: 68
+    jump: "ACCEPT"
+
+# All default Policys last AFTER allowing rules are set
+- name: Set default INPUT policy
+  iptables:
+    chain: "INPUT"
+    policy: "DROP"
+
+- name: Set default FORWARD policy
+  iptables:
+    chain: "FORWARD"
+    policy: "DROP"
+
+- name: Set default OUTPUT policy
+  iptables:
+    chain: "OUTPUT"
+    policy: "DROP"
+
+# NAT rules
+- name: Sett NAT and masquerade on LAN
+  iptables:
+    comment: "Handled by Ansible"
+    table: "nat"
+    chain: "POSTROUTING"
+    out_interface: "{{ conn_int }}"
+    jump: "MASQUERADE"
+
+- name: Sett NAT and masquerade on WAN
+  iptables:
+    comment: "Handled by Ansible"
+    table: "nat"
+    chain: "POSTROUTING"
+    out_interface: "{{ vpn_int }}"
+    jump: "MASQUERADE"

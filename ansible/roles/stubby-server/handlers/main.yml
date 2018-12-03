@@ -1,0 +1,4 @@
+- name: restart stubby
+  service:
+    name: stubby
+    state: restarted

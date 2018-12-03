@@ -1,0 +1,12 @@
+[Unit]
+Description=stubby DNS resolver
+Documentation=https://dnsprivacy.org/wiki/display/DP/DNS+Privacy+DAemon+-+Stubby
+
+[Service]
+WorkingDirectory=/run/stubby
+ExecStart=/usr/local/bin/stubby -C /etc/stubby.yml
+RuntimeDirectory=stubby
+DynamicUser=true
+
+[Install]
+WantedBy=multi-user.target

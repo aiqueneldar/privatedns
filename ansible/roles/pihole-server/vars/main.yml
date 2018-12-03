@@ -1,0 +1,9 @@
+# Details for standard ethernet connection
+
+# Details for VPN connection
+
+# Upstream DNS to use with DOT
+
+# Pihole config
+#pihole_admin_pass_hash: ""
+#pihole_domain: ""

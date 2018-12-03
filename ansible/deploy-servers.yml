@@ -1,0 +1,11 @@
+---
+
+- name: Deploy DNS servers, VPNclient and Iptables rules to be a VPN Gateway
+  hosts: dnsservers
+  roles:
+    - pre-install
+    - stubby-server
+    - pihole-server
+    - openvpnclient
+    - post-install
+    - gateway

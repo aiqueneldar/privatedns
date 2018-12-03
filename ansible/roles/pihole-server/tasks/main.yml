@@ -1,0 +1,28 @@
+- name: make sure dnsmasq is turned off
+  service:
+    name: dnsmasq
+    state: stopped
+
+- name: prep pihole install config dir
+  file:
+    name: /etc/pihole
+    state: directory
+
+- name: copy pihole config
+  template:
+    src: pihole.conf.j2
+    dest: /etc/pihole/setupVars.conf
+
+- name: run pihole install script
+  script: install-pihole.sh
+  args:
+    creates: /usr/local/bin/pihole
+  notify:
+    - restart pihole
+
+- name: copy static dhcp configureation to dns
+  copy:
+    src: static-dhcp.conf
+    dest: /etc/dnsmasq.d/04-pihole-static-dhcp.conf
+  notify:
+    - restart pihole
