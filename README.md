@@ -4,6 +4,7 @@ This project was built using a Debian OS and assumes that the host to be managed
 * apt
 * iptables
 * System-D
+
 To be on the safe side, use a Debian like system running System-D!
 Some parts of this project needs to be configured by you the user before use! Look through the group_vars folder and files and fill in configuration correctly. For sensetive information Ansible Vault is recommended! Also there are som vars folders where you can put sensitive information and override the group_vars ones if you don't want the other roles to see those variables at all.
 
