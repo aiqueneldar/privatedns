@@ -117,7 +117,9 @@ dnssec_return_status: GETDNS_EXTENSION_TRUE
 #   tls_port: Port for TLS (default is 853)
 upstream_recursive_servers:
 # IPv4 addresses
-   {{ dns_upstream_servers }}
+{% for server in dns_upstream_servers 
+  {{ server }}
+%}
 # The Surfnet/Sinodun servers
 #  - address_data: 145.100.185.15
 #    tls_auth_name: "dnsovertls.sinodun.com"

@@ -26,10 +26,10 @@ vpn_endpoints:
 
 # Upstream DNS to use with DoT
 dns_upstream_servers: 
-  - "address_data: 1.1.1.1" 
-  - "tls_auth_name: cloudflare-dns.com"
-  - "address_data: 1.0.0.1"
-  - "tls_auth_name: cloudflare-dns.com"
+  - "- address_data: 1.1.1.1 
+       tls_auth_name: cloudflare-dns.com"
+  - "- address_data: 1.0.0.1
+       tls_auth_name: cloudflare-dns.com"
 dns_upstream_ips:
   - "1.1.1.1"
   - "1.0.0.1"
